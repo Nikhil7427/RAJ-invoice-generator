@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Bill Generator</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: white;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 794px;
+            /* A4 width */
+            margin: auto;
+            padding: 10px 12px;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+        }
+
+        h2 {
+            margin: 2px 0;
+            font-size: 18px;
+            letter-spacing: 0.5px;
+        }
+
+        h3 {
+            margin: 2px 0 4px;
+            font-size: 13px;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            margin: 6px 0;
+        }
+
+        .row>div {
+            flex: 1;
+        }
+
+        label {
+            font-size: 13px;
+            color: #374151;
+            margin-bottom: 4px;
+            display: block;
+            font-weight: 500;
+        }
+
+        input {
+            padding: 10px 12px;
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #f9fafb;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+            background: #ffffff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 11px;
+        }
+
+        th {
+            padding: 5px 4px;
+            border: 1px solid #bbb;
+            background: #f3f4f6;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 4px 4px;
+            border: 1px solid #bbb;
+            vertical-align: top;
+            word-break: break-word;
+        }
+
+
+        td input {
+            border: none;
+            width: 100%;
+            padding: 8px 6px;
+            font-size: 14px;
+            background: transparent;
+            text-align: center;
+        }
+
+        td input:focus {
+            outline: none;
+            background: #eef2ff;
+        }
+
+        .right {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        button {
+            padding: 6px 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .add-btn {
+            background: #6b7280;
+            color: white;
+        }
+
+        .print-btn {
+            background: #2563eb;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .signature {
+            margin-top: 50px;
+            font-weight: 500;
+            text-align: right;
+        }
+
+        @media print {
+
+            @page {
+                size: A4;
+                margin: 8mm;
+            }
+
+            body {
+                font-size: 11px;
+                line-height: 1.15;
+                zoom: 0.95;
+            }
+
+            button,
+            .no-print,
+            select,
+            .invoice-type-row {
+                display: none !important;
+            }
+
+            input,
+            textarea {
+                border: none !important;
+                padding: 0 !important;
+                background: transparent !important;
+                font-size: 11px !important;
+                height: auto !important;
+                white-space: pre-wrap !important;
+                word-break: break-word !important;
+            }
+
+            .container {
+                padding: 0;
+                border: none;
+                box-shadow: none;
+            }
+
+            .row {
+                margin: 4px 0 !important;
+                gap: 6px !important;
+            }
+
+            th,
+            td {
+                padding: 4px 4px !important;
+                font-size: 11px;
+            }
+
+            tr {
+                page-break-inside: avoid !important;
+            }
+
+            /* Default compact row */
+            #itemTable th,
+            #itemTable td {
+                padding: 4px 6px !important;
+                font-size: 11px;
+                line-height: 1.2;
+            }
+
+            /* Extra compact when many rows */
+            body.compact-print #itemTable th,
+            body.compact-print #itemTable td {
+                padding: 2px 4px !important;
+                font-size: 10px !important;
+                line-height: 1.1 !important;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            /* Totals block */
+            .totals-box {
+                width: 42%;
+                margin-left: auto;
+                margin-top: 6px;
+                font-size: 11px;
+                border-top: 1px solid #000;
+            }
+
+            .total-row,
+            .tax-row {
+                padding: 2px 0;
+            }
+
+            .grand-total-row {
+                border-top: 2px solid #000;
+                margin-top: 4px;
+                padding-top: 4px;
+                font-size: 12px;
+                font-weight: 700;
+            }
+
+            /* Footer compact */
+            .invoice-footer {
+                margin-top: 10px;
+                font-size: 11px;
+            }
+
+            .bank-details h4,
+            .terms h4 {
+                font-size: 12px;
+                margin-bottom: 4px;
+            }
+
+            .footer {
+                margin-top: 6px;
+                font-size: 10px;
+            }
+
+            /* GSTIN visibility logic */
+            .invoice-proforma .company-gstin,
+            .invoice-quotation .company-gstin {
+                display: none !important;
+            }
+
+            .invoice-tax .customer-gstin {
+                display: block !important;
+            }
+
+            /* Auto font shrink when items exceed limit */
+            body.compact-print {
+                font-size: 10px !important;
+            }
+
+            body.compact-print h2 {
+                font-size: 13px !important;
+            }
+
+            body.compact-print h3 {
+                font-size: 11px !important;
+            }
+
+            body.compact-print .totals-box {
+                font-size: 11px !important;
+            }
+
+            /* Hide Action column header */
+            th.action-col {
+                display: none !important;
+            }
+
+            /* Hide Action column cells */
+            td.action-col {
+                display: none !important;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            th,
+            td {
+                padding: 4px 6px;
+            }
+
+            /* Hide last column (Action) header */
+            table th:last-child {
+                display: none !important;
+            }
+
+            /* Hide last column (Action) cells */
+            table td:last-child {
+                display: none !important;
+            }
+
+            table {
+                font-size: 11px;
+                border-collapse: collapse;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: fixed;
+            }
+
+            th,
+            td {
+                padding: 4px 6px !important;
+                vertical-align: top;
+            }
+
+            tr {
+                page-break-inside: avoid;
+            }
+
+            table.compact {
+                font-size: 10.5px;
+            }
+
+            table.ultra-compact {
+                font-size: 9.5px;
+            }
+
+            table.compact th,
+            table.compact td,
+            table.ultra-compact th,
+            table.ultra-compact td {
+                padding: 3px 5px !important;
+            }
+
+            @page {
+                size: A4;
+                margin: 8mm;
+            }
+
+            body {
+                zoom: 0.95;
+            }
+
+            table,
+            tr,
+            td,
+            th {
+                page-break-inside: avoid !important;
+            }
+
+            .invoice-container {
+                page-break-after: avoid !important;
+                page-break-before: avoid !important;
+            }
+
+            .action-col,
+            .no-print,
+            th.action-col,
+            td.action-col {
+                display: none !important;
+            }
+
+            body.compact-print {
+                font-size: 11px;
+            }
+
+            body.compact-print td,
+            body.compact-print th {
+                padding: 4px 5px;
+            }
+
+            .header-divider {
+                margin: 8px 0 12px;
+            }
+
+            .header-divider {
+                border-top: 3px solid #2563eb;
+                margin: 8px 0 12px;
+            }
+
+            .signature-block {
+                page-break-inside: avoid;
+            }
+
+            .invoice-header {
+                page-break-inside: avoid;
+            }
+        }
+
+        input,
+        textarea {
+            font-size: 13px;
+        }
+
+        /* ===== TOTALS STYLING ===== */
+
+        .totals-box {
+            width: 40%;
+            margin-left: auto;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .total-row,
+        .tax-row,
+        .grand-total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+
+        .total-row {
+            font-weight: 500;
+        }
+
+        .tax-row {
+            font-size: 13px;
+            color: #555;
+            padding-left: 18px;
+            /* visual hierarchy */
+        }
+
+        .grand-total-row {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 2px solid #000;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+
+        .company-gstin span {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .customer-gstin {
+            display: none;
+        }
+
+        .invoice-tax .customer-gstin {
+            display: block;
+        }
+
+        .invoice-proforma .company-gstin,
+        .invoice-quotation .company-gstin {
+            display: none;
+        }
+
+        .item-text {
+            width: 100%;
+            border: none;
+            resize: none;
+            background: transparent;
+            font-size: 14px;
+            text-align: left;
+            overflow: hidden;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-style: italic;
+            color: gray;
+            font-size: 12px;
+        }
+
+        .print-text {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 14px;
+        }
+
+        .company-gstin {
+            text-align: center;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        /* ===== FOOTER BLOCK ===== */
+
+        .invoice-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            font-size: 13px;
+        }
+
+        .bank-details,
+        .terms {
+            width: 48%;
+        }
+
+        .bank-details h4,
+        .terms h4 {
+            margin-bottom: 6px;
+            font-size: 14px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 3px;
+        }
+
+        .bank-details p {
+            margin: 3px 0;
+        }
+
+        .terms ol {
+            padding-left: 18px;
+            margin: 0;
+        }
+
+        .terms li {
+            margin-bottom: 4px;
+        }
+
+        /* 🔒 Prevent numbers from breaking into multiple lines */
+        td.right,
+        td:last-child {
+            white-space: nowrap !important;
+        }
+
+        /* Headers must stay readable */
+        th {
+            white-space: nowrap;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Compact numeric columns */
+        /* Shrink numeric BODY cells only */
+        td.hsn,
+        td.qty,
+        td.rate,
+        td.discount,
+        td.total {
+            white-space: nowrap;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        /* Total aligned right */
+        td.total {
+            text-align: right;
+        }
+
+        td.item {
+            white-space: normal !important;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            width: auto;
+        }
+
+        /* ITEM column → take maximum space */
+        th.item,
+        td.item {
+            width: 45%;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        /* HSN */
+        th.hsn,
+        td.hsn {
+            width: 8%;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        /* Qty */
+        th.qty,
+        td.qty {
+            width: 6%;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        /* Rate */
+        th.rate,
+        td.rate {
+            width: 12%;
+            white-space: nowrap;
+            text-align: right;
+        }
+
+        /* Discount */
+        th.discount,
+        td.discount {
+            width: 8%;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        /* Total */
+        th.total,
+        td.total {
+            width: 12%;
+            white-space: nowrap;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .company-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+        }
+
+        .invoice-type-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 2px;
+            color: #2563eb;
+            text-transform: uppercase;
+        }
+
+        .company-gstin {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .company-meta {
+            font-size: 12px;
+            margin-top: 6px;
+            color: #444;
+        }
+
+        .header-divider {
+            height: 0;
+            border-top: 3px solid #2563eb;
+            /* ← IMPORTANT */
+            margin: 10px 0 14px;
+        }
+
+        .signature-block {
+            margin-top: 20px;
+            text-align: right;
+            font-size: 13px;
+        }
+
+        .signature-block img {
+            height: 45px;
+            object-fit: contain;
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container" id="bill">
+        <div class="invoice-header">
+            <div class="company-title">RAJ ENTERPRISES</div>
+            <div class="invoice-type-title" id="invoiceTitle">Tax Invoice</div>
+            <div class="company-gstin">
+                GSTIN: <span id="companyGSTIN">09DEHPR5531F1ZA</span>
+            </div>
+
+            <div class="company-meta">
+                B-32, SIDA Colony, Sathariya, Jaunpur-222202<br>
+                📞 +91 9415920769, 9936276790 &nbsp; | &nbsp; ✉️ Chandra15274@gmail.com
+            </div>
+            <div class="header-divider"></div>
+        </div>
+
+        <div class="row">
+            <div>
+                <label>Bill No:</label>
+                <input type="text" id="billNo" placeholder="Invoice No">
+            </div>
+            <div>
+                <label>Date:</label>
+                <input type="date" id="billDate" value="">
+            </div>
+        </div>
+        <div class="row invoice-type-row">
+            <div>
+                <label>Invoice Type</label>
+                <select id="invoiceType" onchange="changeInvoiceType()" style="
+            padding:10px;
+            width:100%;
+            border-radius:6px;
+            border:1px solid #d1d5db;
+            font-size:14px;
+        ">
+                    <option value="proforma">Proforma Invoice</option>
+                    <option value="tax">Tax Invoice</option>
+                    <option value="quotation">Quotation</option>
+                </select>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div>
+                <label>Billed To:</label>
+                <!-- <input type="text" id="customer" placeholder="Customer Name"> -->
+                <textarea id="customer" rows="1" oninput="autoGrow(this)" placeholder="Customer Name" style="
+                    width:100%;
+                    border:1px solid #d1d5db;
+                    border-radius:6px;
+                    resize:none;
+                    font-size:14px;
+                "></textarea>
+            </div>
+            <div>
+                <label>Mobile:</label>
+                <input type="text" id="mobile" placeholder="Mobile Number">
+            </div>
+        </div>
+        <div class="row customer-gstin">
+            <div>
+                <label>Customer GSTIN:</label>
+                <input type="text" id="customerGSTIN" placeholder="Customer GSTIN">
+            </div>
+        </div>
+        <table id="itemTable">
+            <thead>
+                <tr>
+                    <th class="item">Item</th>
+                    <th class="hsn">HSN</th>
+                    <th class="qty">Qty</th>
+                    <th class="rate">Rate</th>
+                    <th class="discount">Discount %</th>
+                    <th class="total">Total</th>
+                    <th class="action-col">Action</th>
+                </tr>
+            </thead>
+            <tbody id="itemBody">
+                <tr>
+                    <td class="item">
+                        <textarea rows="1" oninput="autoGrow(this); calc()" class="item-text"></textarea>
+                    </td>
+                    <td class="hsn">
+                        <input type="text" placeholder="HSN">
+                    </td>
+                    <td class="qty"><input type="number" oninput="calc()"></td>
+                    <td class="rate"><input type="number" oninput="calc()"></td>
+                    <td class="discount"><input type="number" value="0" oninput="calc()"></td>
+                    <td class="total right">0</td>
+                    <td class="action-col">
+                        <button class="delete-btn" onclick="deleteRow(this)">Delete</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button class="add-btn" onclick="addRow()">Add Item</button>
+
+        <div class="row" style="margin-top: 20px;">
+            <div>
+                <label>GST %:</label>
+                <input type="number" id="gstRate" value="18" oninput="calc()">
+            </div>
+        </div>
+        <div class="summary-section totals">
+            <div class="totals-box">
+                <div class="total-row">
+                    <span>Subtotal (after item discount):</span>
+                    <span>₹ <span id="subTotal">0.00</span></span>
+                </div>
+
+                <div class="total-row">
+                    <span>Round Off:</span>
+                    <span>₹ <span id="roundOff">0.00</span></span>
+                </div>
+
+                <div class="tax-row">
+                    <span>CGST (9%):</span>
+                    <span>₹ <span id="cgst">0.00</span></span>
+                </div>
+
+                <div class="tax-row">
+                    <span>SGST (9%):</span>
+                    <span>₹ <span id="sgst">0.00</span></span>
+                </div>
+
+                <div class="grand-total-row">
+                    <span>Grand Total (incl. GST):</span>
+                    <span>₹ <span id="grandTotal">0.00</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="row amount-gst-row">
+            <div>
+                <label>Amount in Words:</label>
+                <input type="text" id="amountWords" readonly>
+            </div>
+            <!-- <div>
+                <label>GST Breakup:</label>
+                <div id="gstBreakup" style="font-size:14px;"></div>
+            </div>  -->
+        </div>
+        <div class="invoice-footer">
+            <div class="bank-details">
+                <h4>Bank Details</h4>
+                <p><strong>Bank Name:</strong> Union Bank of India</p>
+                <p><strong>Account No:</strong> 719901010050121</p>
+                <p><strong>IFSC Code:</strong> UBIN0571997</p>
+                <p><strong>Branch:</strong> Uchaura</p>
+            </div>
+            <div class="terms">
+                <h4>Terms & Conditions</h4>
+                <ol>
+                    <li>Goods once sold will not be taken back.</li>
+                    <li>Payment to be made within 7 days.</li>
+                    <li>Warranty as per manufacturer terms.</li>
+                    <li>Subject to Jaunpur jurisdiction only.</li>
+                </ol>
+            </div>
+        </div>
+        <!-- <div class="signature">
+            Authorized Signature
+        </div> -->
+        <div class="signature-block">
+            <img src="signature.jpeg" alt="Signature">
+            <div>Authorized Signature</div>
+        </div>
+
+        <div class="footer" id="invoiceFooter">
+            This is a computer-generated proforma invoice
+        </div>
+
+
+        <button class="print-btn" onclick="validateBeforePrint()">Print / Save PDF</button>
+    </div>
+
+    <script>
+        function validateBeforePrint() {
+            const type = document.getElementById("invoiceType").value;
+            const customerGSTIN = document.getElementById("customerGSTIN").value.trim();
+
+            if (type === "tax" && customerGSTIN === "") {
+                alert("Customer GSTIN is mandatory for Tax Invoice");
+                document.getElementById("customerGSTIN").focus();
+                return;
+            }
+
+            window.print();
+        }
+
+        function autoGrow(el) {
+            el.style.height = "auto";
+            el.style.height = (el.scrollHeight) + "px";
+        }
+
+        // ===== Invoice Type Toggle =====
+        function changeInvoiceType() {
+            const type = document.getElementById("invoiceType").value;
+            const title = document.getElementById("invoiceTitle");
+            const footer = document.getElementById("invoiceFooter");
+            const container = document.querySelector(".container");
+
+            const customerGSTIN = document.getElementById("customerGSTIN");
+
+            container.classList.remove("invoice-tax", "invoice-proforma", "invoice-quotation");
+
+            if (type === "tax") {
+                title.innerText = "Tax Invoice";
+                footer.innerText = "This is a computer-generated tax invoice";
+                container.classList.add("invoice-tax");
+                customerGSTIN.required = true;
+
+            } else if (type === "proforma") {
+                title.innerText = "Proforma Invoice";
+                footer.innerText = "This is a computer-generated proforma invoice";
+                container.classList.add("invoice-proforma");
+                customerGSTIN.required = false;
+
+            } else {
+                title.innerText = "Quotation";
+                footer.innerText = "This is a computer-generated quotation";
+                container.classList.add("invoice-quotation");
+                customerGSTIN.required = false;
+            }
+        }
+
+
+        // ===== Auto Bill Number =====
+        // let lastBillNumber = localStorage.getItem('lastBillNumber') || 0;
+        // let newBillNumber = parseInt(lastBillNumber) + 1;
+        // document.getElementById('billNo').value = newBillNumber;
+        // localStorage.setItem('lastBillNumber', newBillNumber);
+
+        // ===== Set today's date =====
+        document.getElementById('billDate').valueAsDate = new Date();
+
+        // ===== Add Item Row =====
+        function addRow() {
+            let tbody = document.getElementById("itemBody");
+            let row = tbody.insertRow();
+
+            row.insertCell(0).innerHTML =
+                `<textarea rows="1" oninput="autoGrow(this); calc()" class="item-text"></textarea>`;
+
+            row.insertCell(1).innerHTML =
+                `<input type="text" placeholder="HSN">`;
+
+            row.insertCell(2).innerHTML =
+                `<input type="number" oninput="calc()">`;
+
+            row.insertCell(3).innerHTML =
+                `<input type="number" oninput="calc()">`;
+
+            row.insertCell(4).innerHTML =
+                `<input type="number" value="0" oninput="calc()">`;
+
+            row.insertCell(5).className = "right";
+            row.cells[5].innerText = "0";
+
+            row.insertCell(6).innerHTML =
+                `<button class="delete-btn" onclick="deleteRow(this)">Delete</button>`;
+        }
+
+        // ===== Delete Item Row =====
+        function deleteRow(btn) {
+            let row = btn.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+            calc(); // recalculate totals
+        }
+        function adjustPrintDensity() {
+            const rows = document.querySelectorAll("#itemBody tr");
+            const table = document.querySelector("table");
+
+            table.classList.remove("compact", "ultra-compact");
+
+            if (rows.length > 10 && rows.length <= 14) {
+                table.classList.add("compact");
+            }
+
+            if (rows.length > 14) {
+                table.classList.add("ultra-compact");
+            }
+        }
+
+        // ===== Calculate Totals, GST & Amount in Words =====
+        function calc() {
+            let subtotal = 0;
+            let rows = document.querySelectorAll("#itemBody tr");
+
+            rows.forEach(row => {
+                let qty = parseFloat(row.cells[2].querySelector("input").value) || 0;
+                let rate = parseFloat(row.cells[3].querySelector("input").value) || 0;
+                let discount = parseFloat(row.cells[4].querySelector("input").value) || 0;
+
+                let total = qty * rate;
+                let discountedTotal = total - (total * discount / 100);
+                row.cells[5].innerText = discountedTotal.toFixed(2);
+                subtotal += discountedTotal;
+            });
+
+            document.getElementById("subTotal").innerText = subtotal.toFixed(2);
+
+            let gstRate = parseFloat(document.getElementById("gstRate").value) || 0;
+            let cgst = (subtotal * gstRate / 2 / 100).toFixed(2);
+            let sgst = (subtotal * gstRate / 2 / 100).toFixed(2);
+            // document.getElementById("gstBreakup").innerHTML =
+            //     `CGST (${gstRate / 2}%): ₹${cgst}<br>SGST (${gstRate / 2}%): ₹${sgst}`;
+            document.getElementById("cgst").innerText = cgst;
+            document.getElementById("sgst").innerText = sgst;
+
+
+            let exactTotal = subtotal + parseFloat(cgst) + parseFloat(sgst);
+            let roundedTotal = Math.ceil(exactTotal);
+            let roundOff = roundedTotal - exactTotal;
+
+            document.getElementById("grandTotal").innerText = roundedTotal.toFixed(2);
+            document.getElementById("roundOff").innerText = roundOff.toFixed(2);
+            document.getElementById("amountWords").value =
+                numberToWords(roundedTotal) + " Rupees Only";
+            adjustPrintDensity();
+        }
+
+
+        // ===== Convert Number to Words =====
+        // ===== Convert Number to Words =====
+        function numberToWords(num) {
+            const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+                'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen',
+                'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+
+            const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty',
+                'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+            if (num === 0) return 'Zero';
+
+            function inWords(n) {
+                if (n < 20) return a[n];
+                if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? ' ' + a[n % 10] : '');
+                if (n < 1000)
+                    return a[Math.floor(n / 100)] + ' Hundred' +
+                        (n % 100 ? ' ' + inWords(n % 100) : '');
+                if (n < 100000)
+                    return inWords(Math.floor(n / 1000)) + ' Thousand' +
+                        (n % 1000 ? ' ' + inWords(n % 1000) : '');
+                if (n < 10000000)
+                    return inWords(Math.floor(n / 100000)) + ' Lakh' +
+                        (n % 100000 ? ' ' + inWords(n % 100000) : '');
+                return inWords(Math.floor(n / 10000000)) + ' Crore' +
+                    (n % 10000000 ? ' ' + inWords(n % 10000000) : '');
+            }
+
+            return inWords(num);
+        }
+
+        // ===== Initial Setup =====
+        function preparePrint() {
+            document.querySelectorAll("textarea").forEach(t => {
+                const div = document.createElement("div");
+                div.className = "print-text";
+                div.innerText = t.value;
+                div.setAttribute("data-textarea", "true");
+                t.style.display = "none";
+                t.parentNode.appendChild(div);
+            });
+        }
+
+        function restoreAfterPrint() {
+            document.querySelectorAll("div[data-textarea]").forEach(div => {
+                const textarea = div.parentNode.querySelector("textarea");
+                if (textarea) textarea.style.display = "";
+                div.remove();
+            });
+        }
+
+        window.onbeforeprint = preparePrint;
+        window.onafterprint = restoreAfterPrint;
+
+        window.onload = () => {
+            document.querySelectorAll("textarea").forEach(autoGrow);
+            changeInvoiceType();
+            calc();
+        };
+
+    </script>
+
+</body>
+
+</html>
