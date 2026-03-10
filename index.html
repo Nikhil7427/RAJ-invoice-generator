@@ -675,7 +675,7 @@
 
             <div class="company-meta">
                 B-32, SIDA Colony, Sathariya, Jaunpur-222202<br>
-                📞 +91 9415920769, 9936276790 &nbsp; | &nbsp; ✉️ Chandra15274@gmail.com
+                📞 +91 9415920769 &nbsp; | &nbsp; ✉️ Chandra15274@gmail.com
             </div>
             <div class="header-divider"></div>
         </div>
@@ -703,6 +703,7 @@
                     <option value="proforma">Proforma Invoice</option>
                     <option value="tax">Tax Invoice</option>
                     <option value="quotation">Quotation</option>
+                    <option value="bill">Bill</option>
                 </select>
             </div>
         </div>
@@ -852,7 +853,6 @@
                 document.getElementById("customerGSTIN").focus();
                 return;
             }
-
             window.print();
         }
 
@@ -870,7 +870,7 @@
 
             const customerGSTIN = document.getElementById("customerGSTIN");
 
-            container.classList.remove("invoice-tax", "invoice-proforma", "invoice-quotation");
+            container.classList.remove("invoice-tax", "invoice-proforma", "invoice-quotation", "invoice-bill");
 
             if (type === "tax") {
                 title.innerText = "Tax Invoice";
@@ -884,11 +884,16 @@
                 container.classList.add("invoice-proforma");
                 customerGSTIN.required = false;
 
-            } else {
+            } else if (type === "quotation") {
                 title.innerText = "Quotation";
                 footer.innerText = "This is a computer-generated quotation";
                 container.classList.add("invoice-quotation");
                 customerGSTIN.required = false;
+            } else {
+                title.innerText = "Bill";
+                footer.innerText = "This is a computer-generated bill";
+                container.classList.add("invoice-bill");
+                customerGSTIN.required = true;
             }
         }
 
